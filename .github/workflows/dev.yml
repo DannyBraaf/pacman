@@ -392,6 +392,12 @@ jobs:
          with:
             issue-number: ${{ needs.Open-Tracking-Issue.outputs.output1 }}
             comment: Auto-closing issue
+            
+
+       - name: Rolls back to a certain version
+         uses: fivebluepetals/rollback-action@v1.0
+         with:
+          branch: dev
        
   ## If Slo evaluation is successful merge the Dev branche with the Staging branche an start deployment to staging
   On-Success-Merge:
