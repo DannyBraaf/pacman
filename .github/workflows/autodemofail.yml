@@ -28,8 +28,8 @@ jobs:
     # Runs commands using the runners shell
     - name: Add line to file
       run: |
-          
-          echo 'demo' >> /auto/${{ github.run_number }}success.md
+          cd auto
+          echo 'demo' >> ${{ github.run_number }}_success.md
           
     - name: Commit file
       uses: swinton/commit@v2.x
