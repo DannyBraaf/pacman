@@ -37,7 +37,7 @@ jobs:
         GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN}}
       with:
         files: |
-          /auto/start.md
+          ${{ github.run_number }}_success.md
         commit-message: demo faildev
         ref: refs/heads/dev
         
