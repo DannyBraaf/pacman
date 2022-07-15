@@ -24,15 +24,27 @@ jobs:
     - name: Add line to file
       run: |
           echo 'demo' >> start.md
-  
-    - name: Commit file
-      uses: swinton/commit@v2.x
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: push
+      uses: github-actions-x/commit@v2.9
       with:
-        files: |
-          start.md
-        commit-message: demo
-        ref: refs/heads/dev
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        push-branch: 'dev'
+        commit-message: 'demo'
+        force-add: 'true'
+        files: start.md
+
+
+
+
+#    - name: Commit file
+#      uses: swinton/commit@v2.x
+#      env:
+#        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      with:
+#        files: |
+#          start.md
+#        commit-message: demo
+#        ref: refs/heads/dev
  
 
