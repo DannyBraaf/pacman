@@ -23,15 +23,15 @@ jobs:
     # Runs commands using the runners shell
     - name: Add line to file
       run: |
-          echo 'Demo' >> start.md
+          echo 'demo' >> start.md
     - name: Commit files  # transfer the new html files back into the repository
       run: |
         git config --local user.name  ${{ github.actor }}
         git add start.md
-        git commit -m "Demo"
+        git commit -m "demo"
     - name: Push changes  # push the output folder to your repo
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         branch: dev
-        force: true
+#        force: true
