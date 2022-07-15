@@ -29,9 +29,19 @@ jobs:
         git config --local user.name  ${{ github.actor }}
         git add start.md
         git commit -m "demo"
-    - name: Push changes  # push the output folder to your repo
-      uses: ad-m/github-push-action@master
+
+    - uses: GuillaumeFalourd/pull-request-action@v1
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: dev
+        destination_branch: "dev"
+        pr_title: "demo"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+
+#    - name: Push changes  # push the output folder to your repo
+#      uses: ad-m/github-push-action@master
+#      with:
+#        github_token: ${{ secrets.GITHUB_TOKEN }}
+#        branch: dev
 #        force: true
