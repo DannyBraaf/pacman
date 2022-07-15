@@ -33,7 +33,6 @@ jobs:
     - uses: GuillaumeFalourd/pull-request-action@v1
       with:
         destination_branch: "dev"
-        pr_title: "demo"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
