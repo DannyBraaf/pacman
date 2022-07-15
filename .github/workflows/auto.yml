@@ -30,17 +30,9 @@ jobs:
         git add start.md
         git commit -m "demo"
 
-    - uses: GuillaumeFalourd/pull-request-action@v1
+    - name: Push changes  # push the output folder to your repo
+      uses: ad-m/github-push-action@master
       with:
-        destination_branch: "dev"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: dev
 
-
-
-#    - name: Push changes  # push the output folder to your repo
-#      uses: ad-m/github-push-action@master
-#      with:
-#        github_token: ${{ secrets.GITHUB_TOKEN }}
-#        branch: dev
-#        force: true
