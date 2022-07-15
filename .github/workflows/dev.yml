@@ -1,10 +1,15 @@
 name: CD Deployment/Evaluation Feature Branche Push
 
 on:
-  ## Execute on Master Branche Push/Commit
+  ## Execute on dev Branche Push/Commit
   push:
     
     branches: [ dev ]
+    
+  workflow_run:
+    workflows: ["autodemo"]
+    types:
+      - completed
 
   # Execute Manually
   workflow_dispatch:
