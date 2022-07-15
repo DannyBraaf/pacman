@@ -35,9 +35,4 @@ jobs:
         commit-message: demo
         ref: refs/heads/dev
  
-    - name: Push changes  # push the output folder to your repo
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: dev
 
