@@ -5,7 +5,7 @@ name: Auto Demo Fail Dev
 # Controls when the workflow will run
 on:
   schedule:
-      - cron: '45 * * * *'
+      - cron: '35 * * * *'
 
   workflow_dispatch:
 
