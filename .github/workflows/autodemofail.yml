@@ -28,7 +28,7 @@ jobs:
     # Runs commands using the runners shell
     - name: Add line to file
       run: |
-         echo 'demo' >>  auto/${{ github.run_number }}_success.md
+         echo 'demo' >>  auto/${{ github.run_number }}_fail.md
           
     - name: Commit file
       uses: swinton/commit@v2.x
@@ -36,7 +36,7 @@ jobs:
         GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN}}
       with:
         files: |
-         auto/${{ github.run_number }}_success.md
+         auto/${{ github.run_number }}_fail.md
         commit-message: demo faildev
         ref: refs/heads/dev
         
