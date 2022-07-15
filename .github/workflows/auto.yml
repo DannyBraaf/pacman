@@ -25,11 +25,15 @@ jobs:
       run: |
           echo 'demo' >> start.md
           
-    - name: Commit files  
-      run: |
-        git config --local user.name  ${{ github.actor }}
-        git add start.md
-        git commit -m "Demo"
+    - name: Commit file
+      uses: swinton/commit@v2.x
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        files: |
+          start.md
+        commit-message: demo
+        ref: refs/heads/dev
         
     - name: push
       uses: github-actions-x/commit@v2.9
@@ -42,15 +46,4 @@ jobs:
 
 
 
-
-#    - name: Commit file
-#      uses: swinton/commit@v2.x
-#      env:
-#        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#      with:
-#        files: |
-#          start.md
-#        commit-message: demo
-#        ref: refs/heads/dev
- 
 
