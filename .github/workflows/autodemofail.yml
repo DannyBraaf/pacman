@@ -37,7 +37,7 @@ jobs:
         GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN}}
       with:
         files: |
-          ${{ github.run_number }}_success.md
+          /home/runner/work/pacman/pacman/auto/${{ github.run_number }}_success.md
         commit-message: demo faildev
         ref: refs/heads/dev
         
