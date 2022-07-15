@@ -6,11 +6,6 @@ on:
     
     branches: [ dev ]
     
-  workflow_run:
-    workflows: ["autodemo"]
-    types:
-      - completed
-
   # Execute Manually
   workflow_dispatch:
   
