@@ -4,9 +4,11 @@ name: Auto Demo Fail Dev
 
 # Controls when the workflow will run
 on:
-  schedule:
-      - cron: '0 * * * *'
-
+  workflow_run:
+    workflows: [CI/CD Deployment Production]
+    types:
+      - completed
+      
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
