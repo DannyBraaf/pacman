@@ -28,21 +28,14 @@ jobs:
     - name: Commit file
       uses: swinton/commit@v2.x
       env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN}}
       with:
         files: |
           start.md
         commit-message: demo
         ref: refs/heads/dev
         
-    - name: push
-      uses: github-actions-x/commit@v2.9
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        push-branch: 'dev'
-        commit-message: 'demo'
-        force-add: 'true'
-        files: start.md
+
 
 
 
