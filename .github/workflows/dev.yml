@@ -396,10 +396,12 @@ jobs:
        - uses: actions/checkout@v2
          with:
            ref: 'dev'
-       - name: Undo Push
-         uses: exions/undo-push@v1
-         with:
-          branch: dev
+            
+       - id: passvariable
+         run: |
+             git reset HEAD^ --hard
+             git push origin -f
+
        
   ## If Slo evaluation is successful merge the Dev branche with the Staging branche an start deployment to staging
   On-Success-Merge:
