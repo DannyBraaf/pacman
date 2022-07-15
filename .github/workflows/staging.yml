@@ -365,6 +365,10 @@ jobs:
             echo "$(rollback_staging.yaml)"
             kubectl replace -f /home/ec2-user/rollback_staging.yaml --force
             kubectl wait --for=condition=available --timeout=120s --all deployments -A
+       - name: Rolls back to a certain version
+         uses: fivebluepetals/rollback-action@v1.0
+         with:
+          branch: staging
                  
 
            
