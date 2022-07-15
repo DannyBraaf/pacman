@@ -25,9 +25,11 @@ jobs:
       run: |
           echo 'demo' >> start.md
           
-    - name: Commit files
+    - name: Commit files  
       run: |
-        git commit -m "Add changes" -a
+        git config --local user.name  ${{ github.actor }}
+        git add start.md
+        git commit -m "Demo"
         
     - name: push
       uses: github-actions-x/commit@v2.9
