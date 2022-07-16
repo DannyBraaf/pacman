@@ -57,7 +57,7 @@ jobs:
       with:
         files: |
          auto/${{ github.run_number }}_fail.md
-        commit-message: demo staging
+        commit-message: demo failstaging
         ref: refs/heads/dev
 
 
