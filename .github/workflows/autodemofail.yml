@@ -26,11 +26,20 @@ jobs:
            ref: 'dev'
 
     # Runs commands using the runners shell
+    - name: create random number
+      id: number
+      run: |
+         random=$(( $RANDOM % 2 + 1 ))
+         
+         echo "::set-output name=random::$random"
     - name: Add line to file
       run: |
+         random=$(( $RANDOM % 2 + 1 ))
+         echo "::set-output name=EVALUATION_SCORE::${{ env.EVALUATION_SCORE }}"
          echo 'demo' >>  auto/${{ github.run_number }}_fail.md
           
     - name: Commit file
+      if: "${{ steps.number.outputs.random = 1 }}"
       uses: swinton/commit@v2.x
       env:
         GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN}}
@@ -40,6 +49,16 @@ jobs:
         commit-message: demo faildev
         ref: refs/heads/dev
         
+    - name: Commit file
+      if: "${{ steps.number.outputs.random = 2 }}"
+      uses: swinton/commit@v2.x
+      env:
+        GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN}}
+      with:
+        files: |
+         auto/${{ github.run_number }}_fail.md
+        commit-message: demo staging
+        ref: refs/heads/dev
 
 
 
