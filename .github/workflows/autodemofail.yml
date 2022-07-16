@@ -39,7 +39,7 @@ jobs:
          echo 'demo' >>  auto/${{ github.run_number }}_fail.md
           
     - name: Commit file
-      if: "${{ steps.number.outputs.random = 1 }}"
+      if: "${{ steps.number.outputs.random == 1 }}"
       uses: swinton/commit@v2.x
       env:
         GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN}}
@@ -50,7 +50,7 @@ jobs:
         ref: refs/heads/dev
         
     - name: Commit file
-      if: "${{ steps.number.outputs.random = 2 }}"
+      if: "${{ steps.number.outputs.random == 2 }}"
       uses: swinton/commit@v2.x
       env:
         GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN}}
