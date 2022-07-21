@@ -331,20 +331,18 @@ jobs:
         env:
           ca_token: ${{ secrets.CA_TOKEN }} 
           EVALUATION_SCORE: $EVALUATION_SCORE
-          DT_DEV_DB_ID: ${{ needs.Open-Tracking-Issue.outputs.DT_DEV_DB_ID }} 
-          DT_MZ_ID: ${{ needs.Open-Tracking-Issue.outputs.DT_MZ_ID}} 
         run: |
-           export entityId=$(curl -X GET '${{ secrets.DT_API_URL }}/v2/entities?entitySelector=type(%22SERVICE%22),mzName(%22Tenant:%20tnt-acer-svc-dev%22)' -H 'Authorization: Api-Token ${{ secrets.DT_API_TOKEN }}'| jq -r '.entities[].entityId')
-           echo $entityId
-           trigger_send_event()
-           {
-           curl -X POST "${{ secrets.DT_API_URL }}/v1/events" \
-           -H "accept: application/json; charset=utf-8" \
-           -H "x-token: $ca_token" \
-           -H "Content-Type: application/json; charset=utf-8" \
-           -d "{ "eventType": "CUSTOM_DEPLOYMENT", "attachRules": { "entityIds": [ "$entityId" ], "tagRule": [ { "meTypes": [ "PROCESS_GROUP_INSTANCE" ], "tags": [ { "context": "CONTEXTLESS", "key": "tnt-acer-svc" } ] } ] }, "deploymentName": "Simplenodeservice Deployment Dev", "deploymentVersion": "${{ github.run_number }}", "deploymentProject": "Simplenodeservice", "ciBackLink": "${{ github.SERVER_URL }}/${{ github.REPOSITORY }}/actions/runs/${{ github.RUN_ID }}", "source": "GitHub", "customProperties": { "Commits": "${ github.GITHUB_SHA }", "GitHub_Repository": "${{ github.REPOSITORY }}", "GitHub_Repository_Url": "${{ github.REPOSITORY }}", "GitHub_Project_Url": "${{env.GITHUB_PROJECT_URL}}", "Github_Tracking_issue": "${{ needs.Open-Tracking-Issue.outputs.output1 }}", "GitHub_Tracking_Issue_Url": "${{ github.SERVER_URL }}/${{ github.REPOSITORY }}/issues/${{ needs.Open-Tracking-Issue.outputs.output1 }}", "Release_Validation_Score": "${{ steps.passvariable.outputs.EVALUATION_SCORE }}", "GitHub_Actor": "${{ github.ACTOR }}" } }" \
-           }
-           trigger_send_event
+          export entityId=$(curl -X GET '${{ secrets.DT_API_URL }}/v2/entities?entitySelector=type(%22SERVICE%22),mzName(%22Tenant:%20tnt-acer-svc-dev%22)' -H 'Authorization: Api-Token ${{ secrets.DT_API_TOKEN }}'| jq -r '.entities[].entityId')
+          echo $entityId
+          trigger_send_event()
+          {
+          curl -X POST "${{ secrets.DT_API_URL }}/v1/events" \
+          -H "accept: application/json; charset=utf-8" \
+          -H "x-token: $ca_token" \
+          -H "Content-Type: application/json; charset=utf-8" \
+          -d "{ "eventType": "CUSTOM_DEPLOYMENT", "attachRules": { "entityIds": [ "$entityId" ], "tagRule": [ { "meTypes": [ "PROCESS_GROUP_INSTANCE" ], "tags": [ { "context": "CONTEXTLESS", "key": "tnt-acer-svc" } ] } ] }, "deploymentName": "Simplenodeservice Deployment Dev", "deploymentVersion": "${{ github.run_number }}", "deploymentProject": "Simplenodeservice", "ciBackLink": "${{ github.SERVER_URL }}/${{ github.REPOSITORY }}/actions/runs/${{ github.RUN_ID }}", "source": "GitHub", "customProperties": { "Commits": "${ github.GITHUB_SHA }", "GitHub_Repository": "${{ github.REPOSITORY }}", "GitHub_Repository_Url": "${{ github.REPOSITORY }}", "GitHub_Project_Url": "${{env.GITHUB_PROJECT_URL}}", "Github_Tracking_issue": "${{ needs.Open-Tracking-Issue.outputs.output1 }}", "GitHub_Tracking_Issue_Url": "${{ github.SERVER_URL }}/${{ github.REPOSITORY }}/issues/${{ needs.Open-Tracking-Issue.outputs.output1 }}", "Release_Validation_Score": "${{ steps.passvariable.outputs.EVALUATION_SCORE }}", "GitHub_Actor": "${{ github.ACTOR }}"}}" \
+          }
+          trigger_send_event
 
 
 
