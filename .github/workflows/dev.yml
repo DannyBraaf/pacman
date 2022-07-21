@@ -333,7 +333,7 @@ jobs:
           ca_token: ${{ secrets.CA_TOKEN }} 
           EVALUATION_SCORE: $EVALUATION_SCORE
         run: |
-          export entityId=$(curl -X GET '${{ secrets.DT_API_URL }}/v2/entities?entitySelector=type(%22PROCESS_GROUP_INSTANCE%22),mzName(%22Tenant:%20tnt-acer-svc-dev%22)' -H 'Authorization: Api-Token ${{ secrets.DT_API_TOKEN }}'| jq -r '.entities[].entityId')
+          export entityId=$(curl -X GET '${{ secrets.DT_API_URL }}/v2/entities?entitySelector=type(%22PROCESS_GROUP_INSTANCE%22),mzName(%22Tenant:%20tnt-acer-svc-dev%22)&pageSize=1' -H 'Authorization: Api-Token ${{ secrets.DT_API_TOKEN }}'| jq -r '.entities[].entityId')
           echo $entityId
           echo "::set-output name=entityId::$entityId"
           
