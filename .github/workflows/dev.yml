@@ -338,7 +338,7 @@ jobs:
            echo $entityId
            trigger_send_event()
            {
-           curl -X POST "${{ secrets.DT_API_URL }}/v1/events \
+           curl -X POST "${{ secrets.DT_API_URL }}/v1/events" \
            -H "accept: application/json; charset=utf-8" \
            -H "x-token: $ca_token" \
            -H "Content-Type: application/json; charset=utf-8" \
