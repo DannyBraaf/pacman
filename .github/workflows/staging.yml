@@ -92,7 +92,7 @@ jobs:
             token: ${{secrets.WORKFLOW_TOKEN}}
             assignees: ${{github.actor}}
             labels: documentation, Build ${{ steps.set-version.outputs.build_version }}
-            body: <a href="${{ github.SERVER_URL }}/${{ github.REPOSITORY }}/actions/runs/${{ github.RUN_ID }}"> Workflow Monitor </a> <br> <a href="${{ steps.set_dt_url.outputs.dt_url }}/#dashboard;id=${{ steps.get_variables_db.outputs.dt_staging_db_id }};gf=${{ steps.set_mgmt_zone.outputs.dt_mz_id}};gtf=-10m"> Dynatrace Dev Evaluation Dashboard  </a> <br> <a href="${{secrets.DT_CA_URL}}/bridge/project/slo-evaluation/sequence"> Dynatrace Cloud automation  </a>
+            body: <a href="${{ github.SERVER_URL }}/${{ github.REPOSITORY }}/actions/runs/${{ github.RUN_ID }}"> Workflow Monitor </a> <br> <a href="${{ steps.set_dt_url.outputs.dt_url }}/#dashboard;id=${{ steps.get_variables_db.outputs.dt_staging_db_id }};gf=${{ steps.set_mgmt_zone.outputs.dt_mz_id}};gtf=-10m"> Dynatrace Dev validation Dashboard  </a> <br> <a href="${{secrets.DT_CA_URL}}/bridge/project/slo-evaluation/sequence"> Dynatrace Cloud automation  </a>
 
        - run: |
            echo Created issue number ${{ steps.create-issue.outputs.number }}
@@ -140,7 +140,7 @@ jobs:
 
     
   # Run Simple Jemeter test
-  # If failstaging is in the commit message this step will start linux stress to pruduce high memory and cpu usage to simulate how the SLO Evaluation captures that  
+  # If failstaging is in the commit message this step will start linux stress to pruduce high memory and cpu usage to simulate how the SLO validation captures that  
   Run-Tests:
       runs-on: dynatracedemo
       needs: Deploy-Application
@@ -197,26 +197,26 @@ jobs:
         run: echo "::set-output name=enddate::$(date -d "$TIME - 0min" +"%Y-%m-%dT%H:%M:%S")"
     
           
-  ## Trigger Dynatrace Slo evaluation using start and end time of the testrun
-  Dynatrace-Slo-Evaluation:
+  ## Trigger Dynatrace Slo validation using start and end time of the testrun
+  Dynatrace-Slo-validation:
  
     runs-on: dynatracedemo
     environment:
         name: staging
         url: ${{needs.Open-Tracking-Issue.outputs.DT_URL }}/#dashboard;gtf=${{ env.startdate }}+02:00%20to%20${{ env.enddate }}+02:00;gf=${{steps.get_variables_mz.outputs.dt_mz_id}};id=${{needs.Open-Tracking-Issue.outputs.DT_STAGING_DB_ID}}
     outputs:
-            output1: ${{ steps.passvariable.outputs.EVALUATION_SCORE }}
+            output1: ${{ steps.passvariable.outputs.validation_SCORE }}
             output2: ${{ steps.passvariable.outputs.kepncontext }}
             output3: ${{ steps.passvariable.outputs.startdate }}
             output4: ${{ steps.passvariable.outputs.enddate }}
     needs: [Run-Tests, Open-Tracking-Issue]
     steps:
-    - name: trigger-dynatrace-slo-evaluation 
+    - name: trigger-dynatrace-slo-validation 
       env:
         ca_token: ${{ secrets.CA_TOKEN}} 
-        EVALUATION_SCORE: $EVALUATION_SCORE
+        validation_SCORE: $validation_SCORE
       run: |
-        trigger_evaluation()
+        trigger_validation()
         {
         curl -X POST "${{secrets.DT_CA_URL}}/api/controlPlane/v1/project/slo-evaluation/stage/staging/service/tnt-acer-svc/evaluation" \
         -H "accept: application/json; charset=utf-8" \
@@ -228,17 +228,17 @@ jobs:
         echo "Keptn context: $keptnContext"
         echo $keptnContext
         }
-        trigger_evaluation
+        trigger_validation
         
-        EVALUATION_RESULT=""
-        EVALUATION_SCORE=""
-        EVALUATION_SCORE=$(curl -X GET "${{secrets.DT_CA_URL}}/api/mongodb-datastore/event?keptnContext=$keptnContext&&type=sh.keptn.event.evaluation.finished" \
+        validation_RESULT=""
+        validation_SCORE=""
+        validation_SCORE=$(curl -X GET "${{secrets.DT_CA_URL}}/api/mongodb-datastore/event?keptnContext=$keptnContext&&type=sh.keptn.event.evaluation.finished" \
             -H "accept: application/json; charset=utf-8" \
             -H "x-token: $ca_token" | jq -r '.events[0].data.evaluation.score')
-        echo $EVALUATION_SCORE
-        while [[ "$EVALUATION_SCORE" == null ]]
+        echo $validation_SCORE
+        while [[ "$validation_SCORE" == null ]]
         do
-            EVALUATION_SCORE=$(curl -X GET "${{secrets.DT_CA_URL}}/api/mongodb-datastore/event?keptnContext=$keptnContext&&type=sh.keptn.event.evaluation.finished" \
+            validation_SCORE=$(curl -X GET "${{secrets.DT_CA_URL}}/api/mongodb-datastore/event?keptnContext=$keptnContext&&type=sh.keptn.event.evaluation.finished" \
                 -H "accept: application/json; charset=utf-8" \
                 -H "x-token: $ca_token" | jq  '.events[0].data.evaluation.score')
             sleep 10
@@ -247,8 +247,8 @@ jobs:
         done
         startdate=$(date -d "${{ needs.Run-Tests.outputs.test_start_time }} 120min" +"%Y-%m-%dT%H:%M:%S")
         enddate=$(date -d "${{ needs.Run-Tests.outputs.test_end_time }} 120min" +"%Y-%m-%dT%H:%M:%S")
-        echo $EVALUATION_SCORE
-        echo "EVALUATION_SCORE=$EVALUATION_SCORE" >> "$GITHUB_ENV"
+        echo $validation_SCORE
+        echo "validation_SCORE=$validation_SCORE" >> "$GITHUB_ENV"
         echo $keptnContext
         echo "kepncontext=$keptnContext" >> "$GITHUB_ENV"
         echo "startdate=$startdate" >> "$GITHUB_ENV"
@@ -257,23 +257,23 @@ jobs:
 
     - id: passvariable
       run: |
-          echo "::set-output name=EVALUATION_SCORE::${{ env.EVALUATION_SCORE }}"
+          echo "::set-output name=validation_SCORE::${{ env.validation_SCORE }}"
           echo "::set-output name=kepncontext::${{ env.kepncontext }}"
           echo "::set-output name=startdate::${{ env.startdate }}"
           echo "::set-output name=enddate::${{ env.enddate }}"
    
       
     - name: Create comment
-      if: "${{ steps.passvariable.outputs.EVALUATION_SCORE >= 90 }}"
+      if: "${{ steps.passvariable.outputs.validation_SCORE >= 90 }}"
       uses: peter-evans/create-or-update-comment@v2
       with:
           issue-number: ${{ needs.Open-Tracking-Issue.outputs.output1 }}
           body: |
-               Simplenodeservice was successfully deployed to Staging <a href="http://${{ needs.Open-Tracking-Issue.outputs.output3 }}:8001/"> Simplenodeservice Staging </a> <br> Slo Evaluation has Passed with a Score of ${{ steps.passvariable.outputs.EVALUATION_SCORE }}% <a href="${{needs.Open-Tracking-Issue.outputs.DT_URL }}/#dashboard;gtf=${{ env.startdate }}+02:00%20to%20${{ env.enddate }}+02:00;gf=${{steps.get_variables_mz.outputs.dt_mz_id}};id=${{needs.Open-Tracking-Issue.outputs.DT_STAGING_DB_ID}}"> Dynatrace Slo Dashboard </a>
+               Simplenodeservice was successfully deployed to Staging <a href="http://${{ needs.Open-Tracking-Issue.outputs.output3 }}:8001/"> Simplenodeservice Staging </a> <br> Slo validation has Passed with a Score of ${{ steps.passvariable.outputs.validation_SCORE }}% <a href="${{needs.Open-Tracking-Issue.outputs.DT_URL }}/#dashboard;gtf=${{ env.startdate }}+02:00%20to%20${{ env.enddate }}+02:00;gf=${{steps.get_variables_mz.outputs.dt_mz_id}};id=${{needs.Open-Tracking-Issue.outputs.DT_STAGING_DB_ID}}"> Dynatrace Slo Dashboard </a>
 
       
     - name: Create or Update Project Card
-      if: "${{ steps.passvariable.outputs.EVALUATION_SCORE >= 90 }}"
+      if: "${{ steps.passvariable.outputs.validation_SCORE >= 90 }}"
       uses: peter-evans/create-or-update-project-card@v2
       with:
           project-name: Simplenodeservice
@@ -282,37 +282,70 @@ jobs:
           
         
     - name: Create Label
-      if: "${{ steps.passvariable.outputs.EVALUATION_SCORE >= 90 }}" 
+      if: "${{ steps.passvariable.outputs.validation_SCORE >= 90 }}" 
       uses: andymckay/labeler@1.0.4
       with:
             # The GitHub token
             repo-token: ${{secrets.WORKFLOW_TOKEN}}
             # Labels to add to an issue, seperated by commas.
-            add-labels: "Slo Evaluation Passed"
+            add-labels: "Slo validation Passed"
             # An issue number or PR number or project card number. Optional, if not specified, will use the one available in github event `github.event.pull_request` or `github.event.issue`
             issue-number: ${{ needs.Open-Tracking-Issue.outputs.output1 }}
-    
+  
+  
+    - name: get-group-id
+      id: get-group-id
+      env:
+          ca_token: ${{ secrets.CA_TOKEN }} 
+          Validation_SCORE: $Validation_SCORE
+      run: |
+          export entityId1=$(curl -X GET '${{ secrets.DT_API_URL }}/v2/entities?entitySelector=type(%22PROCESS_GROUP_INSTANCE%22),mzName(%22Tenant:%20tnt-acer-svc-staging%22),tag(%22\[Environment\]DT_RELEASE_BUILD_VERSION:${{ github.run_number }}%22)' -H 'Authorization: Api-Token ${{ secrets.DT_API_TOKEN }}'| jq -r '.entities[0].entityId')
+          echo $entityId1
+          export entityId2=$(curl -X GET '${{ secrets.DT_API_URL }}/v2/entities?entitySelector=type(%22PROCESS_GROUP_INSTANCE%22),mzName(%22Tenant:%20tnt-acer-svc-staging%22),tag(%22\[Environment\]DT_RELEASE_BUILD_VERSION:${{ github.run_number }}%22)' -H 'Authorization: Api-Token ${{ secrets.DT_API_TOKEN }}'| jq -r '.entities[1].entityId')
+          echo $entityId2
+          echo "::set-output name=entityId1::$entityId1"
+          echo "::set-output name=entityId2::$entityId2"
+          
+    - name: send-deployment-event
+      id: senddeploymentevent
+      env:
+          ca_token: ${{ secrets.CA_TOKEN }} 
+          Validation_SCORE: $Validation_SCORE
+      run: |
+          trigger_send_event()
+          {
+          curl -X POST '${{ secrets.DT_API_URL }}/v1/events' \
+          -H 'accept: application/json' \
+          -H 'Authorization: Api-Token ${{ secrets.DT_API_TOKEN }}' \
+          -H 'Content-Type: application/json' \
+          -d '{ "eventType": "CUSTOM_DEPLOYMENT", "attachRules": { "entityIds": [ "${{ steps.get-group-id.outputs.entityId1 }}", "${{ steps.get-group-id.outputs.entityId2 }}" ], "tagRule": [ { "meTypes": [ "PROCESS_GROUP_INSTANCE" ], "tags": [ { "context": "CONTEXTLESS", "key": "Stage", "value": "staging" } ] } ] }, "deploymentName": "Simplenodeservice", "deploymentVersion": ${{ github.run_number }}, "deploymentProject": "Simplenodeservice", "ciBackLink": "${{ github.SERVER_URL }}/${{ github.REPOSITORY }}/actions/runs/${{ github.RUN_ID }}", "source": "GitHub", "customProperties": { "Commits": "${{ github.SHA }}", "GitHub_Repository": "${{ github.REPOSITORY }}", "GitHub Repository Url": "${{ github.REPOSITORY }}", "GitHub Project Url": "${{env.GITHUB_PROJECT_URL}}", "Github Tracking issue": "${{ needs.Open-Tracking-Issue.outputs.output1 }}", "GitHub Tracking Issue Url": "${{ github.SERVER_URL }}/${{ github.REPOSITORY }}/issues/${{ needs.Open-Tracking-Issue.outputs.output1 }}", "Release Validation Score": "${{ steps.passvariable.outputs.Validation_SCORE }}", "GitHub Actor": "${{ github.ACTOR }}"}}'
+          }
+          trigger_send_event
+  
+  
+  
+  
          
-  ## if evaluation fails create a new issue with the Results       
+  ## if validation fails create a new issue with the Results       
   On-Fail-Create-Issue:
        runs-on: dynatracedemo
        environment:
           name: staging
           url: ${{env.needs.Open-Tracking-Issue.outputs.GITHUB_PROJECT_URL}} 
-       needs: [Dynatrace-Slo-Evaluation, Open-Tracking-Issue]
-       if: "${{ needs.Dynatrace-Slo-Evaluation.outputs.output1 < 90 }}"
+       needs: [Dynatrace-Slo-validation, Open-Tracking-Issue]
+       if: "${{ needs.Dynatrace-Slo-validation.outputs.output1 < 90 }}"
        steps:
        - name: Create Issue Action
          id: create-issue2
          uses: dacbd/create-issue-action@main
          with:
-            title: Staging Slo Evaluation Failed with ${{ needs.Dynatrace-slo-evaluation.outputs.output1 }} % 
+            title: Staging Slo validation Failed with ${{ needs.Dynatrace-slo-validation.outputs.output1 }} % 
             token: ${{secrets.WORKFLOW_TOKEN}}
             assignees: ${{github.actor}}
-            labels: Slo Evaluation Failed, Build ${{ needs.Open-Tracking-Issue.outputs.output2 }}
-            body: Slo Evaluation Failed <a href="${{secrets.DT_CA_URL}}/bridge/project/slo-evaluation/service/tnt-acer-svc/context/${{ needs.Dynatrace-Slo-Evaluation.outputs.output2 }}"> Cloud Automation </a> <br> <a href="${{needs.Open-Tracking-Issue.outputs.DT_URL }}/#dashboard;gtf=${{ needs.Dynatrace-Slo-Evaluation.outputs.output3 }}+02:00%20to%20$${{ needs.Dynatrace-Slo-Evaluation.outputs.output4 }}+02:00;gf=${{steps.get_variables_mz.outputs.dt_mz_id}};id=${{needs.Open-Tracking-Issue.outputs.DT_STAGING_DB_ID}}"> Dynatrace Slo Dashboard </a>
+            labels: Slo validation Failed, Build ${{ needs.Open-Tracking-Issue.outputs.output2 }}
+            body: Slo validation Failed <a href="${{secrets.DT_CA_URL}}/bridge/project/slo-evaluation/service/tnt-acer-svc/context/${{ needs.Dynatrace-Slo-evaluation.outputs.output2 }}"> Cloud Automation </a> <br> <a href="${{needs.Open-Tracking-Issue.outputs.DT_URL }}/#dashboard;gtf=${{ needs.Dynatrace-Slo-validation.outputs.output3 }}+02:00%20to%20$${{ needs.Dynatrace-Slo-validation.outputs.output4 }}+02:00;gf=${{steps.get_variables_mz.outputs.dt_mz_id}};id=${{needs.Open-Tracking-Issue.outputs.DT_STAGING_DB_ID}}"> Dynatrace Slo Dashboard </a>
          env:
-           EVALUATION_SCORE: ${{env.EVALUATION_SCORE}}
+           validation_SCORE: ${{env.validation_SCORE}}
            
        - name: Create or Update Project Card
          uses: peter-evans/create-or-update-project-card@v2
@@ -325,7 +358,7 @@ jobs:
          uses: peter-evans/create-or-update-comment@v2
          with:
            issue-number: ${{ needs.Open-Tracking-Issue.outputs.output1 }}
-           body: Slo Evaluation Failed <a href="${{secrets.DT_CA_URL}}/bridge/project/slo-evaluation/service/tnt-acer-svc/context/${{ needs.Dynatrace-Slo-Evaluation.outputs.output2 }}"> Cloud Automation </a> <br> <a href="${{needs.Open-Tracking-Issue.outputs.DT_URL }}/#dashboard;gtf=${{ needs.Dynatrace-Slo-Evaluation.outputs.output3 }}+02:00%20to%20$${{ needs.Dynatrace-Slo-Evaluation.outputs.output4 }}+02:00;gf=${{steps.get_variables_mz.outputs.dt_mz_id}};id=${{needs.Open-Tracking-Issue.outputs.DT_STAGING_DB_ID}}"> Dynatrace Slo Dashboard </a>
+           body: Slo validation Failed <a href="${{secrets.DT_CA_URL}}/bridge/project/slo-evaluation/service/tnt-acer-svc/context/${{ needs.Dynatrace-Slo-validation.outputs.output2 }}"> Cloud Automation </a> <br> <a href="${{needs.Open-Tracking-Issue.outputs.DT_URL }}/#dashboard;gtf=${{ needs.Dynatrace-Slo-validation.outputs.output3 }}+02:00%20to%20$${{ needs.Dynatrace-Slo-validation.outputs.output4 }}+02:00;gf=${{steps.get_variables_mz.outputs.dt_mz_id}};id=${{needs.Open-Tracking-Issue.outputs.DT_STAGING_DB_ID}}"> Dynatrace Slo Dashboard </a>
 
        - name: Create Label
          uses: andymckay/labeler@1.0.4
@@ -333,7 +366,7 @@ jobs:
             # The GitHub token
             repo-token: ${{secrets.WORKFLOW_TOKEN}}
             # Labels to add to an issue, seperated by commas.
-            add-labels: "Slo Evaluation Failed"
+            add-labels: "Slo validation Failed"
             # An issue number or PR number or project card number. Optional, if not specified, will use the one available in github event `github.event.pull_request` or `github.event.issue`
             issue-number: ${{ needs.Open-Tracking-Issue.outputs.output1 }}
 
@@ -350,12 +383,12 @@ jobs:
           column-name: ✅ Done 
           issue-number: ${{ needs.Open-Tracking-Issue.outputs.output1 }}
 
-  ## if evaluation fails Rollback to previous version
+  ## if validation fails Rollback to previous version
   ## Not best practive, best practice would be to use something like kubectl rollout undo daemonset <daemonset-name> --to-revision=<revision>
   On-Fail-Rollback:
        runs-on: dynatracedemo
-       needs: [Dynatrace-Slo-Evaluation, Open-Tracking-Issue]
-       if: "${{ needs.Dynatrace-Slo-Evaluation.outputs.output1 < 90 }}"         
+       needs: [Dynatrace-Slo-validation, Open-Tracking-Issue]
+       if: "${{ needs.Dynatrace-Slo-validation.outputs.output1 < 90 }}"         
        steps:
        - name: Rollback
          env:
@@ -376,8 +409,8 @@ jobs:
        environment:
           name: production-approval
           url: "${{ github.SERVER_URL }}/${{ github.REPOSITORY }}/actions/workflows/master.yml"
-       needs: [Dynatrace-Slo-Evaluation, Open-Tracking-Issue]
-       if: "${{ needs.Dynatrace-Slo-Evaluation.outputs.output1 > 89 }}" 
+       needs: [Dynatrace-Slo-validation, Open-Tracking-Issue]
+       if: "${{ needs.Dynatrace-Slo-validation.outputs.output1 > 89 }}" 
        steps:             
  
        - name: Create or Update Project Card
@@ -389,11 +422,11 @@ jobs:
           
           
        - name: Create comment
-         if: "${{ needs.Dynatrace-Slo-Evaluation.outputs.output1 > 89 }}" 
+         if: "${{ needs.Dynatrace-Slo-validation.outputs.output1 > 89 }}" 
          uses: peter-evans/create-or-update-comment@v2
          with:
               issue-number: ${{ needs.Open-Tracking-Issue.outputs.output1 }}
-              labels: Slo Evaluation Passed
+              labels: Slo validation Passed
               body: |
                     :sparkles: Build simplenodeservice:${{ needs.Open-Tracking-Issue.outputs.output2 }} was successfully deployed to Staging :sparkles:
                     
