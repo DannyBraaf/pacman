@@ -333,9 +333,12 @@ jobs:
           ca_token: ${{ secrets.CA_TOKEN }} 
           EVALUATION_SCORE: $EVALUATION_SCORE
         run: |
-          export entityId=$(curl -X GET '${{ secrets.DT_API_URL }}/v2/entities?entitySelector=type(%22PROCESS_GROUP_INSTANCE%22),mzName(%22Tenant:%20tnt-acer-svc-dev%22)&pageSize=1' -H 'Authorization: Api-Token ${{ secrets.DT_API_TOKEN }}'| jq -r '.entities[].entityId')
-          echo $entityId
-          echo "::set-output name=entityId::$entityId"
+          export entityId1=$(curl -X GET '${{ secrets.DT_API_URL }}/v2/entities?entitySelector=type(%22PROCESS_GROUP_INSTANCE%22),mzName(%22Tenant:%20tnt-acer-svc-dev%22),tag("[Environment]DT_RELEASE_BUILD_VERSION:${{ github.run_number }}")' -H 'Authorization: Api-Token ${{ secrets.DT_API_TOKEN }}'| jq -r '.entities[0].entityId?')
+          echo $entityId1
+          export entityId2=$(curl -X GET '${{ secrets.DT_API_URL }}/v2/entities?entitySelector=type(%22PROCESS_GROUP_INSTANCE%22),mzName(%22Tenant:%20tnt-acer-svc-dev%22),tag("[Environment]DT_RELEASE_BUILD_VERSION:${{ github.run_number }}")' -H 'Authorization: Api-Token ${{ secrets.DT_API_TOKEN }}'| jq -r '.entities[0].entityId?')
+          echo $entityId2
+          export entityId='$entityId1", "$entityId2'
+          echo "::set-output name=entityId1::$entityId"
           
       - name: send-deployment-event
         id: senddeploymentevent
