@@ -195,8 +195,21 @@ jobs:
       - name: set test end time
         id: set_end_time
         run: echo "::set-output name=enddate::$(date -d "$TIME - 0min" +"%Y-%m-%dT%H:%M:%S")"
-    
-          
+  
+  Run-Testim:
+      runs-on: ubuntu-latest
+      needs: Deploy-Application
+      steps:
+      - name: run testim testcases
+        run: npm i -g @testim/testim-cli && testim --token "okolUMBR7BVLxTIZr7CDSdFphCBB3CLPYSdwhCdTbBZPSmai66" --project "VvXEosqxNXwuiV8e0RMS" --grid "Testim-Grid" --report-file "report.xml"
+      - name: parse xml 
+        uses: mavrosxristoforos/get-xml-info@1.0
+        with:
+          xml-file: 'report.xml'
+          xpath: '//testcase'     
+     
+     
+     
   ## Trigger Dynatrace Slo validation using start and end time of the testrun
   Dynatrace-Slo-validation:
  
@@ -209,7 +222,7 @@ jobs:
             output2: ${{ steps.passvariable.outputs.kepncontext }}
             output3: ${{ steps.passvariable.outputs.startdate }}
             output4: ${{ steps.passvariable.outputs.enddate }}
-    needs: [Run-Tests, Open-Tracking-Issue]
+    needs: [Run-Tests, Open-Tracking-Issue, Run-Testim]
     steps:
     - name: trigger-dynatrace-slo-validation 
       env:
