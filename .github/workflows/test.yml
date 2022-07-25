@@ -26,3 +26,31 @@ jobs:
       - name: check result
         run: |
            echo ${{ steps.getxml.outputs.result}}
+           export timestamp=$(date +%s%3N)
+           if [[ "${{ steps.getxml.outputs.result}}" == 0 ]]; then
+           export result = 100
+           else
+           export result = 0
+           get_evaluation_body()
+           {
+             cat <<EOF
+           {
+             "type": "SERVICE",
+             "series": [
+               {
+                 "timeseriesId": "custom:Demoserviceappstest",
+                 "dataPoints" : [[ $timestamp, $result ]]
+               }
+             ]
+           }
+           EOF
+           }
+                  
+           send_evaluation_to_dynatrace()
+           {
+           curl -X POST "https://ozw11698.live.dynatrace.com/api/v1/entity/infrastructure/custom/custom:Demoserviceappstest" \
+           -H "accept: application/json" \
+           -H "Authorization: Api-Token ${{ secrets.DT_API_TOKEN }}" \
+           -H "Content-Type: application/json" \
+           -d "$(get_evaluation_body)"
+           }
