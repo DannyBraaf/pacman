@@ -27,7 +27,7 @@ jobs:
         run: |
            echo ${{ steps.getxml.outputs.result}}
            export timestamp=$(date +%s%3N)
-           if [[ "${{ steps.getxml.outputs.result}}" == 0 ]]; then
+           if [[ ${{ steps.getxml.outputs.result}} == " failure="0"" ]]; then
            export result = 100
            else
            export result = 0
