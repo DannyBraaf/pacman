@@ -144,6 +144,9 @@ jobs:
   Run-Jmeter-Tests:
       runs-on: dynatracedemo
       needs: Deploy-Application
+      environment:
+          name: staging
+          url: https://app.testim.io/#/project/VvXEosqxNXwuiV8e0RMS/branch/master/runs/suites
       outputs:
               test_start_time: ${{ steps.set_start_time.outputs.startdate }}
               test_end_time: ${{ steps.set_end_time.outputs.enddate }}
