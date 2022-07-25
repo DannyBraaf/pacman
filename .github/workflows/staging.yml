@@ -197,7 +197,7 @@ jobs:
         run: echo "::set-output name=enddate::$(date -d "$TIME - 0min" +"%Y-%m-%dT%H:%M:%S")"
   
   Run-Testim:
-      runs-on: dynatracedemo
+      runs-on: ubuntu-latest
       needs: Deploy-Application
       steps:
       - name: run testim testcases
