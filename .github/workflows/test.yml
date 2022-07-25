@@ -53,4 +53,12 @@ jobs:
            -H "Authorization: Api-Token ${{ secrets.DT_API_TOKEN }}" \
            -H "Content-Type: application/json" \
            -d "$(get_evaluation_body)"
+           
            }
+           
+           main()
+           {
+              send_evaluation_to_dynatrace
+           }
+
+           main
