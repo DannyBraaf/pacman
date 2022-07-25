@@ -202,14 +202,7 @@ jobs:
       steps:
       - name: run testim testcases
         run: npm i -g @testim/testim-cli && testim --token "okolUMBR7BVLxTIZr7CDSdFphCBB3CLPYSdwhCdTbBZPSmai66" --project "VvXEosqxNXwuiV8e0RMS" --grid "Testim-Grid" --report-file "report.xml"
-      - name: parse xml 
-        id: getxml
-        uses: mavrosxristoforos/get-xml-info@1.0
-        with:
-          xml-file: 'report.xml'
-          xpath: '//testsuites/@failure'   
-      - name: check result
-        run: echo ${{ steps.getxml.outputs.info }}
+
      
      
      
