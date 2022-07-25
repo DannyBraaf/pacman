@@ -141,9 +141,12 @@ jobs:
     
   # Run Simple Jemeter test
   # If failstaging is in the commit message this step will start linux stress to pruduce high memory and cpu usage to simulate how the SLO validation captures that  
-  Run-jmeter-tests:
+  Run-Jmeter-Tests:
       runs-on: dynatracedemo
       needs: Deploy-Application
+      environment:
+          name: staging
+          url: https://app.testim.io/#/project/VvXEosqxNXwuiV8e0RMS/branch/master/runs/suites
       outputs:
               test_start_time: ${{ steps.set_start_time.outputs.startdate }}
               test_end_time: ${{ steps.set_end_time.outputs.enddate }}
@@ -255,7 +258,7 @@ jobs:
             output2: ${{ steps.passvariable.outputs.kepncontext }}
             output3: ${{ steps.passvariable.outputs.startdate }}
             output4: ${{ steps.passvariable.outputs.enddate }}
-    needs: [Run-jmeter-tests, Open-Tracking-Issue, Run-Tricentis-Testim]
+    needs: [Run-Jmeter-Tests, Open-Tracking-Issue, Run-Tricentis-Testim]
     steps:
     - name: trigger-dynatrace-slo-validation 
       env:
@@ -268,7 +271,7 @@ jobs:
         -H "accept: application/json; charset=utf-8" \
         -H "x-token: $ca_token " \
         -H "Content-Type: application/json; charset=utf-8" \
-        -d "{\"start\": \"${{ needs.Run-jmeter-tests.outputs.test_start_time }}.000Z\", \"end\": \"${{ needs.Run-jmeter-tests.outputs.test_end_time }}.000Z\", \"labels\":{\"buildId\":\"${{ needs.Open-Tracking-Issue.outputs.output2 }}\", \"evaltime\":\"$(date +%s%3N)\"}}" \
+        -d "{\"start\": \"${{ needs.Run-Jmeter-Tests.outputs.test_start_time }}.000Z\", \"end\": \"${{ needs.Run-Jmeter-Tests.outputs.test_end_time }}.000Z\", \"labels\":{\"buildId\":\"${{ needs.Open-Tracking-Issue.outputs.output2 }}\", \"evaltime\":\"$(date +%s%3N)\"}}" \
         -o "keptnContext.json"
         keptnContext=$(cat keptnContext.json | jq -r '.keptnContext')
         echo "Keptn context: $keptnContext"
@@ -291,8 +294,8 @@ jobs:
             
          
         done
-        startdate=$(date -d "${{ needs.Run-jmeter-tests.outputs.test_start_time }} 120min" +"%Y-%m-%dT%H:%M:%S")
-        enddate=$(date -d "${{ needs.Run-jmeter-tests.outputs.test_end_time }} 120min" +"%Y-%m-%dT%H:%M:%S")
+        startdate=$(date -d "${{ needs.Run-Jmeter-Tests.outputs.test_start_time }} 120min" +"%Y-%m-%dT%H:%M:%S")
+        enddate=$(date -d "${{ needs.Run-Jmeter-Tests.outputs.test_end_time }} 120min" +"%Y-%m-%dT%H:%M:%S")
         echo $validation_SCORE
         echo "validation_SCORE=$validation_SCORE" >> "$GITHUB_ENV"
         echo $keptnContext
@@ -364,7 +367,7 @@ jobs:
           -H 'accept: application/json' \
           -H 'Authorization: Api-Token ${{ secrets.DT_API_TOKEN }}' \
           -H 'Content-Type: application/json' \
-          -d '{ "eventType": "CUSTOM_DEPLOYMENT", "attachRules": { "entityIds": [ "${{ steps.get-group-id.outputs.entityId1 }}", "${{ steps.get-group-id.outputs.entityId2 }}" ], "tagRule": [ { "meTypes": [ "PROCESS_GROUP_INSTANCE" ], "tags": [ { "context": "CONTEXTLESS", "key": "Stage", "value": "staging" } ] } ] }, "deploymentName": "Simplenodeservice-staging", "deploymentVersion": ${{ needs.Open-Tracking-Issue.outputs.output2 }}, "deploymentProject": "Simplenodeservice", "ciBackLink": "${{ github.SERVER_URL }}/${{ github.REPOSITORY }}/actions/runs/${{ github.RUN_ID }}", "source": "GitHub", "customProperties": { "Commits": "${{ github.SHA }}", "GitHub_Repository": "${{ github.REPOSITORY }}", "GitHub Repository Url": "{{ github.SERVER_URL }}/${{ github.REPOSITORY }}", "GitHub Project Url": "${{needs.Open-Tracking-Issue.outputs.GITHUB_PROJECT_URL}}", "Github Tracking issue": "${{ needs.Open-Tracking-Issue.outputs.output1 }}", "GitHub Tracking Issue Url": "${{ github.SERVER_URL }}/${{ github.REPOSITORY }}/issues/${{ needs.Open-Tracking-Issue.outputs.output1 }}", "Release Validation Score": "${{ steps.passvariable.outputs.Validation_SCORE }}", "Slo Validation Dashboard": "${{env.DT_URL}}/#dashboard;gtf=${{ env.startdate }}+02:00%20to%20${{ env.enddate }}+02:00;gf=${{ needs.Open-Tracking-Issue.outputs.DT_MZ_ID}};id=${{ needs.Open-Tracking-Issue.outputs.DT_DEV_DB_ID }}", "GitHub Actor": "${{ github.ACTOR }}"}}'
+          -d '{ "eventType": "CUSTOM_DEPLOYMENT", "attachRules": { "entityIds": [ "${{ steps.get-group-id.outputs.entityId1 }}", "${{ steps.get-group-id.outputs.entityId2 }}" ], "tagRule": [ { "meTypes": [ "PROCESS_GROUP_INSTANCE" ], "tags": [ { "context": "CONTEXTLESS", "key": "Stage", "value": "staging" } ] } ] }, "deploymentName": "Simplenodeservice-staging", "deploymentVersion": ${{ needs.Open-Tracking-Issue.outputs.output2 }}, "deploymentProject": "Simplenodeservice", "ciBackLink": "${{ github.SERVER_URL }}/${{ github.REPOSITORY }}/actions/runs/${{ github.RUN_ID }}", "source": "GitHub", "customProperties": { "Commits": "${{ github.SHA }}", "GitHub_Repository": "${{ github.REPOSITORY }}", "GitHub Repository Url": "{{ github.SERVER_URL }}/${{ github.REPOSITORY }}", "GitHub Project Url": "${{needs.Open-Tracking-Issue.outputs.GITHUB_PROJECT_URL}}", "Github Tracking issue": "${{ needs.Open-Tracking-Issue.outputs.output1 }}", "GitHub Tracking Issue Url": "${{ github.SERVER_URL }}/${{ github.REPOSITORY }}/issues/${{ needs.Open-Tracking-Issue.outputs.output1 }}", "Release Validation Score": "${{ steps.passvariable.outputs.Validation_SCORE }}", "Slo Validation Dashboard": "${{env.DT_URL}}/#dashboard;gtf=${{ env.startdate }}+02:00%20to%20${{ env.enddate }}+02:00;gf=${{ needs.Open-Tracking-Issue.outputs.DT_MZ_ID}};id=${{ needs.Open-Tracking-Issue.outputs.DT_DEV_DB_ID }}", "GitHub Actor": "${{ github.ACTOR }}", "Tricentis Testim Functional Test Case Runs":"https://app.testim.io/#/project/VvXEosqxNXwuiV8e0RMS/branch/master/runs/suites"}}'
           }
           trigger_send_event
   
