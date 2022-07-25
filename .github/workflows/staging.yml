@@ -222,7 +222,7 @@ jobs:
             output2: ${{ steps.passvariable.outputs.kepncontext }}
             output3: ${{ steps.passvariable.outputs.startdate }}
             output4: ${{ steps.passvariable.outputs.enddate }}
-    needs: [Run-Tests, Open-Tracking-Issue]
+    needs: [Run-Tests, Open-Tracking-Issue, Run-Testim]
     steps:
     - name: trigger-dynatrace-slo-validation 
       env:
