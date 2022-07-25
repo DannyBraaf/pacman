@@ -22,12 +22,13 @@ jobs:
         uses: QwerMike/xpath-action@v1
         with:
           filename: 'report.xml'
-          expression: '/testsuites/testsuite[1]/failure'
+          expression: '/testsuites/testsuite[1]/@failure'
       - name: check result
         run: |
            echo ${{ steps.getxml.outputs.result}}
            export timestamp=$(date +%s%3N)
-           if [[ ${{ steps.getxml.outputs.result}} == " failure="0"" ]]; then
+           if [[ ${{ steps.getxml.outputs.result}} == ' failure="0"' ]]
+           then
            export result = 100
            else
            export result = 0
