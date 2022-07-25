@@ -207,7 +207,7 @@ jobs:
         uses: mavrosxristoforos/get-xml-info@1.0
         with:
           xml-file: 'report.xml'
-          xpath: '//testsuites/failure'   
+          xpath: '//testsuites/@failure'   
       - name: check result
         run: echo ${{ steps.getxml.outputs.info }}
      
