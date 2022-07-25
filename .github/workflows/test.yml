@@ -46,19 +46,12 @@ jobs:
            EOF
            }
                   
-           send_evaluation_to_dynatrace()
-           {
            curl -X POST "https://ozw11698.live.dynatrace.com/api/v1/entity/infrastructure/custom/custom:Demoserviceappstest" \
            -H "accept: application/json" \
            -H "Authorization: Api-Token ${{ secrets.DT_API_TOKEN }}" \
            -H "Content-Type: application/json" \
            -d "$(get_evaluation_body)"
            
-           }
            
-           main()
-           {
-              send_evaluation_to_dynatrace
-           }
+           
 
-           main
