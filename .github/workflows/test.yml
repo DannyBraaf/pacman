@@ -31,6 +31,8 @@ jobs:
            export result = 100
            else
            export result = 0
+           fi
+                      
            get_evaluation_body()
            {
              cat <<EOF
