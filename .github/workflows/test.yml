@@ -22,6 +22,7 @@ jobs:
         uses: QwerMike/xpath-action@v1
         with:
           filename: 'report.xml'
-          expression: '//testsuites/testsuite[1]'
+          expression: '//testsuites/testsuite/failure/text()'
       - name: check result
-        run: echo ${{ steps.getxml.outputs.result}}
+        run: |
+           echo ${{ steps.getxml.outputs.result}}
