@@ -141,7 +141,7 @@ jobs:
     
   # Run Simple Jemeter test
   # If failstaging is in the commit message this step will start linux stress to pruduce high memory and cpu usage to simulate how the SLO validation captures that  
-  Run-Tests:
+  Run-jmeter-tests:
       runs-on: dynatracedemo
       needs: Deploy-Application
       outputs:
@@ -196,17 +196,50 @@ jobs:
         id: set_end_time
         run: echo "::set-output name=enddate::$(date -d "$TIME - 0min" +"%Y-%m-%dT%H:%M:%S")"
   
-  Run-Testim:
+  Run-Tricentis-Testim:
       runs-on: ubuntu-latest
       needs: Deploy-Application
       steps:
       - name: run testim testcases
-        run: npm i -g @testim/testim-cli && testim --token "okolUMBR7BVLxTIZr7CDSdFphCBB3CLPYSdwhCdTbBZPSmai66" --project "VvXEosqxNXwuiV8e0RMS" --grid "Testim-Grid" --report-file "report.xml"
+        run: npm i -g @testim/testim-cli && testim --token "${{ secrets.testimtoken }}" --project "VvXEosqxNXwuiV8e0RMS" --grid "Testim-Grid" --report-file "report.xml"
       - name: parse xml 
-        uses: mavrosxristoforos/get-xml-info@1.0
+        id: getxml
+        uses: QwerMike/xpath-action@v1
         with:
-          xml-file: 'report.xml'
-          xpath: '//testcase'     
+          filename: 'report.xml'
+          expression: '/testsuites/testsuite[1]/@failure'
+      - name: check result
+        run: |
+           echo ${{ steps.getxml.outputs.result}}
+           export timestamp=$(date +%s%3N)
+           if [[ '${{ steps.getxml.outputs.result}}' == ' failure="0"' ]]
+           then
+           result=100
+           else
+           result=0
+           fi
+                      
+           get_evaluation_body()
+           {
+             cat <<EOF
+           {
+             "type": "SERVICE",
+             "series": [
+               {
+                 "timeseriesId": "custom:Demoserviceappstest",
+                 "dataPoints" : [[ $timestamp, $result ]]
+               }
+             ]
+           }
+           EOF
+           }
+                  
+           curl -X POST "${{ secrets.DT_API_URL }}/v1/entity/infrastructure/custom/custom:Demoserviceappstest" \
+           -H "accept: application/json" \
+           -H "Authorization: Api-Token ${{ secrets.DT_API_TOKEN }}" \
+           -H "Content-Type: application/json" \
+           -d "$(get_evaluation_body)"
+           sleep 50
      
      
      
@@ -222,7 +255,7 @@ jobs:
             output2: ${{ steps.passvariable.outputs.kepncontext }}
             output3: ${{ steps.passvariable.outputs.startdate }}
             output4: ${{ steps.passvariable.outputs.enddate }}
-    needs: [Run-Tests, Open-Tracking-Issue, Run-Testim]
+    needs: [Run-jmeter-tests, Open-Tracking-Issue, Run-Tricentis-Testim]
     steps:
     - name: trigger-dynatrace-slo-validation 
       env:
@@ -235,7 +268,7 @@ jobs:
         -H "accept: application/json; charset=utf-8" \
         -H "x-token: $ca_token " \
         -H "Content-Type: application/json; charset=utf-8" \
-        -d "{\"start\": \"${{ needs.Run-Tests.outputs.test_start_time }}.000Z\", \"end\": \"${{ needs.Run-Tests.outputs.test_end_time }}.000Z\", \"labels\":{\"buildId\":\"${{ needs.Open-Tracking-Issue.outputs.output2 }}\", \"evaltime\":\"$(date +%s%3N)\"}}" \
+        -d "{\"start\": \"${{ needs.Run-jmeter-tests.outputs.test_start_time }}.000Z\", \"end\": \"${{ needs.Run-jmeter-tests.outputs.test_end_time }}.000Z\", \"labels\":{\"buildId\":\"${{ needs.Open-Tracking-Issue.outputs.output2 }}\", \"evaltime\":\"$(date +%s%3N)\"}}" \
         -o "keptnContext.json"
         keptnContext=$(cat keptnContext.json | jq -r '.keptnContext')
         echo "Keptn context: $keptnContext"
@@ -258,8 +291,8 @@ jobs:
             
          
         done
-        startdate=$(date -d "${{ needs.Run-Tests.outputs.test_start_time }} 120min" +"%Y-%m-%dT%H:%M:%S")
-        enddate=$(date -d "${{ needs.Run-Tests.outputs.test_end_time }} 120min" +"%Y-%m-%dT%H:%M:%S")
+        startdate=$(date -d "${{ needs.Run-jmeter-tests.outputs.test_start_time }} 120min" +"%Y-%m-%dT%H:%M:%S")
+        enddate=$(date -d "${{ needs.Run-jmeter-tests.outputs.test_end_time }} 120min" +"%Y-%m-%dT%H:%M:%S")
         echo $validation_SCORE
         echo "validation_SCORE=$validation_SCORE" >> "$GITHUB_ENV"
         echo $keptnContext
