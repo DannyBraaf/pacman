@@ -30,7 +30,6 @@ jobs:
       id: number
       run: |
          random=$(( $RANDOM % 2 + 1 ))
-         random=1
          echo "::set-output name=random::$random"
     - name: Add line to file
       run: |
@@ -55,7 +54,7 @@ jobs:
       with:
         files: |
          auto/${{ github.run_number }}_fail.md
-        commit-message: demo failstaging
+        commit-message: demo failstaginglong
         ref: refs/heads/dev
 
 
