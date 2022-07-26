@@ -30,13 +30,11 @@ jobs:
       id: number
       run: |
          random=$(( $RANDOM % 2 + 1 ))
-         
+         random=1
          echo "::set-output name=random::$random"
     - name: Add line to file
       run: |
-         random=$(( $RANDOM % 2 + 1 ))
-         echo "::set-output name=EVALUATION_SCORE::${{ env.EVALUATION_SCORE }}"
-         echo 'demo' >>  auto/${{ github.run_number }}_fail.md
+       echo 'demo' >>  auto/${{ github.run_number }}_fail.md
           
     - name: Commit file
       if: "${{ steps.number.outputs.random == 1 }}"
