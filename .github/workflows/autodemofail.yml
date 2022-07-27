@@ -30,6 +30,7 @@ jobs:
       id: number
       run: |
          random=$(( $RANDOM % 2 + 1 ))
+         random=2
          echo "::set-output name=random::$random"
     - name: Add line to file
       run: |
