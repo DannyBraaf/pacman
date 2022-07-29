@@ -51,6 +51,7 @@ jobs:
                echo "build_version=$build_version" >> "$GITHUB_ENV"
                export publicip=$(curl http://checkip.amazonaws.com)               
                echo "::set-output name=publicip::$publicip"
+               sudo service docker start || true
                
        - name: Set Dashboard Id Variable
          id: get_variables_db
